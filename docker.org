@@ -1,0 +1,99 @@
+#+title: ¿Qué es docker?
+#+author: Miguel Piña
+#+date: [2018-03-09 vie 11:19]
+#+setupfile: ~/proyectos/org-html-themes/setup/theme-bigblow.setup
+
+Docker está diseñado para ser una aplicación que permite la ejecución de
+aplicaciones a través de contenedores.
+
+Un contenedor es un paquete de elementos que permiten la ejecución de
+aplicaciones sin importar el sistema operativo.
+
+Permiten garantizar que una determinada aplicación se ejecute de forma correcta
+sin importar el entorno en que se ejecute el contenedor.
+
+Esta tecnología se asemeja a la virtualización de sistemas operativos, sin
+embargo, trabajan a un nivel menor, garantizando que se tenga el conjunto mínimo
+de recursos de software para que una aplicación funcione.
+
+El trabajar con un contenedor te permite ser más ágil a la hora de realizar
+migraciones o establecer configuraciones de entorno entre distintos sistemas
+operativos.
+
+* Ethereum
+
+Vamos a usar la imagen de docker/client-go. Es la implementación oficial del
+protocolo de ethereum en golang.
+
+Ejecutar un nodo y conectarse a la red principal de ethereum
+
+#+begin_src bash
+  sudo docker run -d --name ethereum-node \
+       -v $HOME/.ethereum:/root \
+       -p 8545:8545 -p 30303:30303 \
+       ethereum/client-go:v1.7.3 --fast --cache=512
+#+end_src
+
+Ejecutar un nodo para conectarse a la red pública de ethereum.
+
+#+begin_src bash
+  docker run -d --name ethereum-node \
+         -v $HOME/.ethereum:/root \
+         -p 8545:8545 -p 30303:30303 \
+         ethereum/client-go:v1.7.3 --testnet --fast --cache=512
+#+end_src
+
+
+Para revisar los logs de los nodos:
+
+#+begin_src bash
+  docker logs -f ethereum-node
+#+end_src
+
+Para contectarse a la consola del nodo que está conectado a la red
+
+#+begin_src bash
+  docker exec -ti ethereum-node geth attach
+#+end_src
+
+En el caso de que el nodo se haya conectado a la red de prueba:
+
+#+begin_src bash
+  docker exec -ti ethereum-node \
+         geth attach ipc:/root/.ethereum/testnet/geth.ipc
+#+end_src
+
+** Repositorio de ayuda para manipular nodos
+
+El siguiente repositorio contiene scripts para facilitar la manipulación de
+docker con la manipulación de imágenes de los clientes de ethereum y tener
+distintos tipos de nodos (normales, verificadores, minadores, de inicio).
+
+#+begin_src bash
+git clone git@github.com:vertigobr/ethereum.git
+#+end_src
+
+Para levantar un nodo de inicio hay que ejecutar el script de:
+
+
+#+begin_src bash
+./bootnode.sh
+#+end_src
+
+Para conectar un nodo normal basta con ejecutar el script:
+
+#+begin_src bash
+./runnode.sh
+#+end_src
+
+Para ejecutar un nodo minador:
+
+#+begin_src bash
+./runminner.sh
+#+end_src
+
+Para verificar si están conectados todos los nodos:
+
+#+begin_src bash
+./showpeers.sh
+#+end_src

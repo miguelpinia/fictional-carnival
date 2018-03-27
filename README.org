@@ -1,0 +1,11 @@
+#+title: Configuración para crear una red privada de ethereum
+#+author: Miguel Piña
+#+date: [2018-03-26 lun 21:58]
+
+Este repositorio contiene archivos para facilitar la implementación de una red
+privada de ethereum para probar las distintas características que provee
+ethereum, desde la transferencia de activos hasta la ejecución de contratos
+inteligentes.
+
+Parte de los archivos que están en este repositorio fueron tomados del
+repositorio [[https://github.com/vertigobr/ethereum][vertigobr/ethereum]].

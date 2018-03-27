@@ -1,0 +1,68 @@
+#+title: Configurando una red privada
+#+author: Miguel Piña
+#+date: [2018-03-20 Tue 19:34]
+
+* Actualizando la versión de ubuntu minimal
+
+La versión que tiene instalada el vps es ubuntu 12.04 lts minimal, por lo que
+hay que actualizar a ubuntu 16.04 lts. Para hacer esto, es necesario ejecutar el
+siguiente comando:
+
+#+begin_src bash
+sudo apt-get install update-manager-core
+#+end_src
+
+Ese paquete va instalar las herramientas necesarias para poder ejecutar el
+script de do-release-upgrade:
+
+#+begin_src bash
+sudo do-release-upgrade
+#+end_src
+
+Eso hay que ejecutarlo dos veces hasta tener actualizado el vps con ubuntu *16.04
+lts*. Una vez actualizado el repositorio, hay que instalar *docker*. Esto lo
+hacemos con los siguientes comandos:
+
+#+begin_src bash
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+lsb_release -cs
+sudo add-apt-repository    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+sudo apt update
+sudo apt-get install docker-ce
+#+end_src
+
+Y para probar que la instalación se hizo de forma correcta, ejecutamos:
+
+
+#+begin_src bash
+sudo docker run hello-world
+#+end_src
+
+Ahora, para levantar una red privada dentro del servidor, clonamos el
+repositorio de vertigobr:
+
+#+begin_src bash
+git clone git@github.com:vertigobr/ethereum.git
+#+end_src
+
+Levantamos un nodo bootstrap:
+
+#+begin_src bash
+cd ethereum
+sudo ./bootnode.sh
+sudo ./getbootnodeurl.sh
+./genesis.sh
+sudo ./runnode.sh node1
+sudo ./runnode.sh node2
+sudo ./runnode.sh node3
+sudo ./runnode.sh node4
+sudo ./showpeers.sh node1
+sudo ./runminer.sh miner1
+sudo ./showpeers.sh miner1
+#+end_src
+
+* ¿Exponer puertos de los dockers de forma segura?

@@ -20,10 +20,10 @@ if [ ! -f $DATA_ROOT/.bootnode/boot.key ]; then
            $IMGNAME bootnode --genkey /opt/bootnode/boot.key
     echo "... Hecho!"
 fi
-
 # Inicializamos la red de ethereum
-
 [ ! "$(docker network ls | grep ethereum)" ] && docker network create ethereum
+# Levantamos una imagen con el nodo bootstrap indicando los puertos
+# que se van a mapear para poder agregar nodos desde otras máquinas.
 docker run -d --name ethereum-bootnode \
        -v $DATA_ROOT/.bootnode:/opt/bootnode \
        -p 8545:8545 -p 30303:30303 \

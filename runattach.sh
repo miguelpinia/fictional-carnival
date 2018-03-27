@@ -1,0 +1,4 @@
+#!/bin/bash
+NODE=$1
+NODE=${NODE:-"ethereum-node1"}
+docker exec -ti "$NODE" geth attach

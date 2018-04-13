@@ -9,3 +9,13 @@ inteligentes.
 
 Parte de los archivos que están en este repositorio fueron tomados del
 repositorio [[https://github.com/vertigobr/ethereum][vertigobr/ethereum]].
+
+* Generando una nueva aplicación clojurescript
+
+Para interactuar con web3.js que es la API de ethereum para trabajar con el
+mundo exterior, se implementa una aplicación en clojurescript usando lein. La
+forma en que se generó esta aplicación fue la siguiente:
+
+#+begin_src sh
+lein new figwheel smart_contract_app
+#+end_src

@@ -1,0 +1,405 @@
+#+title: Dockers y ethereum
+#+author: Miguel Piña (@MiguelPinia)
+#+date: [2018-04-02 lun 16:00]
+#+OPTIONS: num:nil toc:nil
+#+REVEAL_THEME: blood
+#+REVEAL_EXTRA_CSS: ./presentacion.css
+
+
+* ¿Qué es docker?
+#+ATTR_REVEAL: :frag roll-in
+- Es una aplicación diseñado para permitir la ejecución de aplicaciones a
+  través de contenedores.
+#+ATTR_REVEAL: :frag roll-in
+- Un contenedor es un paquete de elementos que permiten la ejecución de
+  aplicaciones sin importar el sistema operativo.
+** ¿Qué es docker?
+#+ATTR_REVEAL: :frag roll-in
+- Permiten garantizar que una determinada aplicación se ejecute de forma
+  correcta sin importar el entorno en que se ejecute el contenedor.
+#+ATTR_REVEAL: :frag roll-in
+- Esta tecnología se asemeja a la virtualización de sistemas operativos, sin
+  embargo, trabajan a un nivel menor, garantizando que se tenga el conjunto
+  mínimo de recursos de software para que una aplicación funcione.
+** ¿Que es docker?
+#+ATTR_REVEAL: :frag roll-in
+- El trabajar con un contenedor te permite ser más ágil a la hora de realizar
+  migraciones o establecer configuraciones de entorno entre distintos sistemas
+  operativos.
+* VM's vs Dockers
+
+[[file:figures/vms-containers.jpg]]
+
+* Configuración del VPS
+
+La versión que tiene instalada el vps es ubuntu 12.04 lts minimal, por lo que
+hay que actualizar a ubuntu 16.04 lts. Para hacer esto, es necesario ejecutar el
+siguiente comando:
+
+#+begin_src sh
+  sudo apt-get install update-manager-core
+#+end_src
+
+** Configuración del VPS
+
+Ese paquete va instalar las herramientas necesarias para poder ejecutar el
+script de do-release-upgrade:
+
+#+begin_src sh
+  sudo do-release-upgrade
+#+end_src
+
+Eso hay que ejecutarlo dos veces hasta tener actualizado el vps con ubuntu *16.04
+lts*.
+
+** Configuración del VPS
+
+Una vez actualizado el repositorio, hay que instalar *docker*. Esto lo
+hacemos con los siguientes comandos:
+
+#+begin_src bash
+  sudo apt install apt-transport-https ca-certificates \
+       curl software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+      | sudo apt-key add -
+  sudo apt-key fingerprint 0EBFCD88
+  lsb_release -cs
+  sudo add-apt-repository \
+      "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) \
+       stable"
+  sudo apt update
+  sudo apt-get install docker-ce
+#+end_src
+
+** Configuración del VPS
+
+Y para probar que la instalación se hizo de forma correcta, ejecutamos:
+
+
+#+begin_src bash
+sudo docker run hello-world
+#+end_src
+
+** Ethereum
+
+El siguiente paso es crear una red privada dentro del VPS. Para ello clonaremos
+un repositorio de git que tienes las herramientas para hacerlo más sencillo.
+
+#+begin_src bash
+git clone git@github.com:vertigobr/ethereum.git
+#+end_src
+
+** Ethereum
+
+De este repositorio hay tres archivos importantes:
+
+- bootnode.sh
+- runnode.sh
+- runminer.sh
+
+
+* bootnode.sh
+
+El contenido del bootnode es el siguiente:
+
+#+begin_src sh
+#!/bin/sh
+# Runs a bootnode with ethereum official "alltools" image.
+docker stop ethereum-bootnode
+docker rm ethereum-bootnode
+IMGNAME="ethereum/client-go:alltools-v1.7.3"
+DATA_ROOT=${DATA_ROOT:-$(pwd)}
+# generate bootnode key if needed
+mkdir -p $DATA_ROOT/.bootnode
+if [ ! -f $DATA_ROOT/.bootnode/boot.key ]; then
+    echo "$DATA_ROOT/.bootnode/boot.key not found, generating..."
+    docker run --rm \
+        -v $DATA_ROOT/.bootnode:/opt/bootnode \
+        $IMGNAME bootnode --genkey /opt/bootnode/boot.key
+    echo "...done!"
+fi
+#+end_src
+
+** bootnode.sh
+
+#+begin_src sh
+  # creates ethereum network
+  [ ! "$(docker network ls | grep ethereum)" ] && \
+      docker network create ethereum
+  [[ -z $BOOTNODE_SERVICE ]] && BOOTNODE_SERVICE="127.0.0.1"
+  docker run -d --name ethereum-bootnode \
+      -v $DATA_ROOT/.bootnode:/opt/bootnode \
+      --network ethereum \
+      $IMGNAME bootnode --nodekey /opt/bootnode/boot.key --verbosity=3 "$@"
+#+end_src
+
+* runnode.sh
+
+Otro de los scripts importantes es runnode.sh el cual permite levantar un red de
+la red.
+
+#+begin_src sh
+#!/bin/bash
+IMGNAME="oethereum/client-go:v1.8.2"
+NODE_NAME=$1
+NODE_NAME=${NODE_NAME:-"node1"}
+DETACH_FLAG=${DETACH_FLAG:-"-d"}
+CONTAINER_NAME="ethereum-$NODE_NAME"
+DATA_ROOT=${DATA_ROOT:-"$(pwd)/.ether-$NODE_NAME"}
+DATA_HASH=${DATA_HASH:-"$(pwd)/.ethash"}
+echo "Destroying old container $CONTAINER_NAME..."
+docker stop $CONTAINER_NAME
+docker rm $CONTAINER_NAME
+RPC_PORTMAP=
+RPC_ARG=
+#+end_src
+
+** runnode.sh
+
+#+begin_src sh
+if [[ ! -z $RPC_PORT ]]; then
+    RPC_ARG='--rpc --rpcaddr=0.0.0.0 --rpcapi=db,eth,net,web3,personal --rpccorsdomain "*"'
+    RPC_PORTMAP="-p $RPC_PORT:8545"
+fi
+BOOTNODE_URL=${BOOTNODE_URL:-$(./getbootnodeurl.sh)}
+if [ ! -f $(pwd)/genesis.json ]; then
+    echo "No genesis.json file found, please run 'genesis.sh'. Aborting."
+    exit
+fi
+if [ ! -d $DATA_ROOT/keystore ]; then
+    echo "$DATA_ROOT/keystore not found, running 'geth init'..."
+    docker run --rm \
+        -v $DATA_ROOT:/root/.ethereum \
+        -v $(pwd)/genesis.json:/opt/genesis.json \
+        $IMGNAME init /opt/genesis.json
+    echo "...done!"
+fi
+#+end_src
+
+** runnode.sh
+
+#+begin_src sh
+echo "Running new container $CONTAINER_NAME..."
+docker run $DETACH_FLAG --name $CONTAINER_NAME \
+    --network ethereum \
+    -v $DATA_ROOT:/root/.ethereum \
+    -v $DATA_HASH:/root/.ethash \
+    -v $(pwd)/genesis.json:/opt/genesis.json \
+    $RPC_PORTMAP \
+    $IMGNAME --bootnodes=$BOOTNODE_URL $RPC_ARG --cache=512 --verbosity=4 \
+             --maxpeers=3 ${@:2}
+#+end_src
+
+* runminer.sh
+
+Adicionalmente podemos ejecutar un miner para la red.
+
+#+begin_src sh
+#!/bin/bash
+NODE_NAME=$1
+NODE_NAME=${NODE_NAME:-"miner1"}
+ETHERBASE=${ETHERBASE:-"0x0000000000000000000000000000000000000001"}
+./runnode.sh $NODE_NAME --mine --minerthreads=1 --etherbase="$ETHERBASE"
+#+end_src
+
+* Levantando la red
+
+Para levantar la red, hay que ejecutar los siguientes scripts:
+
+#+begin_src sh
+sudo ./bootnode.sh
+sudo ./runnode.sh nodo1
+sudo ./runnode.sh nodo2
+sudo ./runnode.sh nodo3
+sudo ./runminer.sh miner1
+#+end_src
+
+* Entrando a la consola (geth) de alguno de los nodos
+
+Para poder acceder a la consola de los nodos de la red, basta con ejecutar el
+siguiente comando:
+
+#+begin_src sh
+sudo ./runattach.sh ethereum-nodo1
+#+end_src
+
+* Enviando ethers
+
+#+begin_src sh
+./runattach.sh ethereum-nodo1
+personal.newAccount('password')
+# "0xb20e7c7fa58e38f6eaaaaa47a6cd4a79d920789c"
+personal.unlockAccount("0xb20e7c7fa58e38f6eaaaaa47a6cd4a79d920789c", \
+  "password", 300)
+web3.fromWei(eth.getBalance(eth.coinbase), "ether")
+eth.getBalance(eth.coinbase)
+eth.sendTransaction({from: eth.coinbase, to: \
+  "0xb20e7c7fa58e38f6eaaaaa47a6cd4a79d920789c", value: \
+  100000000000});
+miner.start();
+eth.getBalance(eth.coinbase);
+miner.stop();
+web3.fromWei(eth.getBalance(eth.coinbase), "ether")
+#+end_src
+
+
+* Enviando ethers
+
+Nodo 2
+
+#+begin_src sh
+eth.getBalance("0xb20e7c7fa58e38f6eaaaaa47a6cd4a79d920789c")
+# 295000000000000000000
+personal.newAccount('password')
+# "0xb81e692844308c4f0faa4b2e5ff8ab05af8b80e0"
+personal.unlockAccount("0xb81e692844308c4f0faa4b2e5ff8ab05af8b80e0", \
+  "password", 300)
+eth.getBalance("0xb81e692844308c4f0faa4b2e5ff8ab05af8b80e0")
+#+end_src
+
+Regresando al nodo 1
+
+#+begin_src sh
+  eth.sendTransaction({
+      from: "0x621fc39c88cfaa115d08af209e6d695d178e7392",
+      to: "0x1b66f6d421a5e95bd4165cb9d34b97f970f760d4",
+      value: 10000000000000000000
+  })
+#+end_src
+
+* Enviando ethers
+
+Verificando si ya se ejecuto la transacción:
+
+#+begin_src sh
+eth.pendingTransactions
+#+end_src
+
+
+
+* Smart Contracts
+
+Para ejecutar un smart contract, primero hay que compilarlo para pasarselo a la
+red y ejecutarlo. Para compilar se necesita una herramienta que se llama solc,
+la cuál es una aplicación de NodeJs.
+
+* Instalando npm y solc
+
+#+begin_src sh
+  cd ~
+  curl -sL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh
+  sudo bash nodesource_setup.sh
+  sudo apt install nodejs
+  npm init
+  npm install -g sol
+#+end_src
+
+* Compilando un smart contract
+
+Dado el siguiente contrato:
+
+#+begin_src javascript
+pragma solidity ^0.4.21;
+contract Mortal {
+    /* Define variable owner of the type address */
+    address owner;
+    /* This function is executed at initialization and sets the owner of the contract */
+    function Mortal() public { owner = msg.sender; }
+    /* Function to recover the funds on the contract */
+    function kill() public { if (msg.sender == owner) selfdestruct(owner); }
+}
+#+end_src
+
+** Compilando un smart contract
+
+#+begin_src javascript
+contract Greeter is Mortal {
+    /* Define variable greeting of the type string */
+    string greeting;
+    /* This runs when the contract is executed */
+    function Greeter(string _greeting) public {
+        greeting = _greeting;
+    }
+    /* Main function */
+    function greet() public constant returns (string) {
+        return greeting;
+    }
+}
+#+end_src
+
+
+** Compilando un smart contract
+
+Para compilar el smart contract anterior, ejecutamos
+
+#+begin_src sh
+solc -o target --bin --abi Greeter.sol
+#+end_src
+
+Esto crea una estructura como la siguiente:
+
+[[file:contract.png]]
+
+
+** Compilando un smart contract
+
+#+begin_src javascript
+var greeterFactory = eth.contract(<contents of the file Greeter.abi>)
+var greeterCompiled = "0x" + "<contents of the file Greeter.bin>"
+var _greeting = "Hello World!"
+eth.getCode(greeter.address);
+#+end_src
+
+
+
+** Compilando un smart contract
+
+#+begin_src javascript
+  var greeter = greeterFactory.new(_greeting,
+                                   {from:"0x621fc39c88cfaa115d08af209e6d695d178e7392",
+                                    data:greeterCompiled,gas:47000000},
+                                   function(e, contract){
+      if(e) {
+        console.error(e); // If something goes wrong, at least we'll know.
+        return;
+      }
+      if(!contract.address) {
+        console.log("Contract transaction send: TransactionHash: " +
+                    contract.transactionHash +
+                    " waiting to be mined...");
+      } else {
+        console.log("Contract mined! Address: " + contract.address);
+        console.log(contract);
+      }
+  });
+
+#+end_src
+
+#+begin_notes
+  var greetingFactory = eth.contract([{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"greet","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_greeting","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]);
+  var greetingCompiled = "0x" + "6060604052341561000f57600080fd5b6040516103a93803806103a983398101604052808051820191905050336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508060019080519060200190610081929190610088565b505061012d565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106100c957805160ff19168380011785556100f7565b828001600101855582156100f7579182015b828111156100f65782518255916020019190600101906100db565b5b5090506101049190610108565b5090565b61012a91905b8082111561012657600081600090555060010161010e565b5090565b90565b61026d8061013c6000396000f30060606040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806341c0e1b514610051578063cfae321714610066575b600080fd5b341561005c57600080fd5b6100646100f4565b005b341561007157600080fd5b610079610185565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156100b957808201518184015260208101905061009e565b50505050905090810190601f1680156100e65780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161415610183576000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16ff5b565b61018d61022d565b60018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156102235780601f106101f857610100808354040283529160200191610223565b820191906000526020600020905b81548152906001019060200180831161020657829003601f168201915b5050505050905090565b6020604051908101604052806000815250905600a165627a7a72305820320ff8465e1771ca156f81bf5cfd03036066c4932871357a3ffd3bd0ff498bad0029";
+  var _greeting = "Hello World!"
+  personal.unlockAccount(eth.accounts[0], 'password', 300);
+
+var greeter1 = greeterFactory.new(_greeting,{from:"0x5807c13b5ac8a5c5a8df08d4acbcaf6e69c6395a",data:greeterCompiled,gas:470000}, function(e, contract){
+    if(e) {
+      console.error(e);
+      return;
+    }
+    if(!contract.address) {
+      console.log("Contract transaction send: TransactionHash: " + contract.transactionHash + " waiting to be mined...");
+    } else {
+      console.log("Contract mined! Address: " + contract.address);
+      console.log(contract);
+    }
+});
+#+end_notes
+
+** Compilando un smart contract
+
+#+begin_src javascript
+eth.getCode(greeter.address); // Obtener la dirección del contrato
+greeter.greet(); // Ejecutamos el contrato
+greeter.kill.sendTransaction({from:eth.accounts[0]})
+#+end_src

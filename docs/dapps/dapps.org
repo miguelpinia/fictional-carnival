@@ -19,31 +19,6 @@ Queremos desarrollar una aplicación descentralizadas
 
 - Smart Contract ::
 
-
-** Transacciones
-
-- Un blockchain es una base de datos transaccional globalmente compartida.
-- Una transacción es un mensaje enviado desde una cuenta hacia otra. Puede
-  incluir datos binarios (payload) y Ether.
-- Si la cuenta destino tiene código asociado, ese código es ejecutado y los
-  datos binarios (payload) es utilizado como entrada.
-- Si la cuenta destino es la cuenta *0*, la transacción crea un nuevo contrato.
-- Para cambiar algo en la blockchain es necesario crear una transacción la cual
-  tiene que ser aceptada por los otros.
-- Una transacción siempre está firmada criptográficamente por el que lo envía (o
-  creador).
-
-
-** Bloques
-
-- Un bloque es una estructura que permite agrupar a las transacciones que van a
-  ser ejecutadas y distribuidas.
-- Los bloques forman una secuencia lineal en el tiempo.
-- Son añadidos en intervalos regulares. (En ethereum cada 17 segundos
-  aproximadamente).
-- El mecanismo para añadir estos bloques es través del proceso de minado ("proof
-  of work").
-
 ** Cuentas (Accounts)
 
 - Ethereum maneja dos tipos de cuentas:
@@ -54,12 +29,77 @@ Queremos desarrollar una aplicación descentralizadas
        cuenta. La dirección de estas cuentas es determinado al momento de crear
        el contrato (es derivado de la dirección del creador del contrato y el
        número de transacciones enviadas desde esa cuenta).
+- Cada tiene un balance en ether (en "Wei"s para ser exactos).
+
+** Transacciones
+
+- Una transacción es un mensaje enviado desde una cuenta hacia otra. Puede
+  incluir datos binarios (payload) y Ether.
+- Si la cuenta destino tiene código asociado, ese código es ejecutado y los
+  datos binarios (payload) es utilizado como entrada.
+- Si la cuenta destino es la cuenta *0*, la transacción crea un nuevo contrato.
+- Para cambiar algo en la blockchain es necesario crear una transacción la cual
+  tiene que ser aceptada por los otros.
+- Una transacción siempre está firmada criptográficamente por el que lo envía (o
+  crea).
+
+** Contratos
+
+** Bloques
+
+- Un bloque es una estructura que permite agrupar a las transacciones que van a
+  ser ejecutadas y distribuidas a todos los nodos participantes.
+- Los bloques forman una secuencia lineal en el tiempo.
+- Son añadidos en intervalos regulares. (En ethereum cada 17 segundos
+  aproximadamente).
+- El mecanismo para añadir estos bloques es través del proceso de minado ("proof
+  of work").
+
+** Ether
+
+- Es el tipo de criptoconcurrencia creada para servir de combustible en la red
+  de ethereum. Su propósito es para pagar a los nodos de la red por los recursos
+  computacionales que proveen para mantener la red.
+- Se puede obtener ether al participar en el minado, donde por cada bloque
+  minado, se recompensa con 5 ethers ó por comprárselos a terceros.
+
+
+** Ether
+
+Los ethers está constituido de denominaciones más pequeñas, donde la más pequeña
+es llamada wei y es igual a 10^{-18} ethers.
+
+| Denominación |                           Valor |
+|--------------+---------------------------------|
+| Wei          |                               1 |
+| Ada          |                            1000 |
+| Fentoether   |                            1000 |
+| Kwei         |                            1000 |
+| Mwei         |                         1000000 |
+| Babbage      |                         1000000 |
+| Pictoether   |                         1000000 |
+| Shannon      |                      1000000000 |
+| Gwei         |                      1000000000 |
+| Nano         |                      1000000000 |
+| Szabo        |                   1000000000000 |
+| Micro        |                   1000000000000 |
+| Microether   |                   1000000000000 |
+| Finney       |                1000000000000000 |
+| Milli        |                1000000000000000 |
+| Milliether   |                1000000000000000 |
+| Ether        |             1000000000000000000 |
+| Einstein:    |          1000000000000000000000 |
+| Kether:      |          1000000000000000000000 |
+| Grand:       |          1000000000000000000000 |
+| Mether:      |       1000000000000000000000000 |
+| Gether:      |    1000000000000000000000000000 |
+| Tether:      | 1000000000000000000000000000000 |
 
 ** Gas
 
-- Después de la creación, cada transacción es cargada con gas, la cual limita la
-  cantidad de trabajo que es necesario que es necesario para ejecutar la
-  transacción y para pagar su ejecución.
+- Después de la creación de la transacción, cada transacción es cargada con gas,
+  la cual limita la cantidad de trabajo que es necesario que es necesario para
+  ejecutar la transacción y para pagar su ejecución.
 - El precio del gas es un valor establecido por el creador de la transacción,
   quien tiene que pagar /precio de gas * gas/ desde la cuenta de envío.
 
@@ -90,6 +130,7 @@ personas acaparen que ciertas transacciones siempre sean las primeras minadas.
   variables locales pequeñas. Sólo puede mantener una cantidad limitada de
   elementos.
 
+
 ** Invocaciones de Mensajes
 
 - Los contratos pueden invocar a otros contratos o enviar Ether a cuentas que no
@@ -99,8 +140,18 @@ personas acaparen que ciertas transacciones siempre sean las primeras minadas.
 
 * Solidity en profundidad
 
+** ¿Qué es solidity?
 
+- Es un lenguaje de alto nivel, cuya sintaxis es muy similar a Javascript
+- Se compila a bytecode que después es ejecutado en la EVM.
+- Solidity es un lenguaje Turing-Completo
 
+** IDEs para el desarrollo de smart contracts con solidity
+- Remix :: Editor oficial de ethereum
+- Ethereum studio :: Plugin para visual studio
+- Plugin de Intellij ::
+- EtherAtom :: Plugin para Atom
+- solidity-mode :: Modo de edición de solidity para emacs.
 
 * Flujo de implementacíón de contratos
 

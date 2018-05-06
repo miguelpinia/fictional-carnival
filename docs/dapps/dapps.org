@@ -1,0 +1,115 @@
+#+title: ĐApps
+#+author: Miguel Piña
+#+date: [2018-04-25 mié 13:23]
+#+OPTIONS: num:nil toc:nil
+#+REVEAL_THEME: blood
+#+REVEAL_EXTRA_CSS: ./presentacion.css
+
+
+* Problema
+
+Queremos desarrollar una aplicación descentralizadas
+
+* Prerequisitos
+
+- Ethereum ::
+-
+
+* Introducción a Smart Contracts
+
+- Smart Contract ::
+
+
+** Transacciones
+
+- Un blockchain es una base de datos transaccional globalmente compartida.
+- Una transacción es un mensaje enviado desde una cuenta hacia otra. Puede
+  incluir datos binarios (payload) y Ether.
+- Si la cuenta destino tiene código asociado, ese código es ejecutado y los
+  datos binarios (payload) es utilizado como entrada.
+- Si la cuenta destino es la cuenta *0*, la transacción crea un nuevo contrato.
+- Para cambiar algo en la blockchain es necesario crear una transacción la cual
+  tiene que ser aceptada por los otros.
+- Una transacción siempre está firmada criptográficamente por el que lo envía (o
+  creador).
+
+
+** Bloques
+
+- Un bloque es una estructura que permite agrupar a las transacciones que van a
+  ser ejecutadas y distribuidas.
+- Los bloques forman una secuencia lineal en el tiempo.
+- Son añadidos en intervalos regulares. (En ethereum cada 17 segundos
+  aproximadamente).
+- El mecanismo para añadir estos bloques es través del proceso de minado ("proof
+  of work").
+
+** Cuentas (Accounts)
+
+- Ethereum maneja dos tipos de cuentas:
+  - Cuentas externas :: Son controladas por parejas llave pública -
+       privada. La dirección de estas cuentas es determinada por la llave
+       pública.
+  - Cuentas de contrato :: Son controladas por el código almacenado junto con la
+       cuenta. La dirección de estas cuentas es determinado al momento de crear
+       el contrato (es derivado de la dirección del creador del contrato y el
+       número de transacciones enviadas desde esa cuenta).
+
+** Gas
+
+- Después de la creación, cada transacción es cargada con gas, la cual limita la
+  cantidad de trabajo que es necesario que es necesario para ejecutar la
+  transacción y para pagar su ejecución.
+- El precio del gas es un valor establecido por el creador de la transacción,
+  quien tiene que pagar /precio de gas * gas/ desde la cuenta de envío.
+
+** Gas
+
+Dependiendo del total que se quiere gastar para minar una transacción, los
+costos más comunes para estos son:
+
+- 40 GWei (gigaWei) de Precio de Gas para casi siempre la transacción se
+  encuentre en el próximo bloque minado.
+- 20 GWei va a permitir que la transacción se encuentre entre los siguientes
+  bloques minados.
+- 2 GWei usualmente permitirá que la transacción se encuentre entre los bloques
+  de los siguientes minutos.
+
+Estos valores están limitados a 50 GWei de precio de gas para evitar que las
+personas acaparen que ciertas transacciones siempre sean las primeras minadas.
+
+** Almacenamiento, memoria y la pila
+
+- Cada cuenta tiene un área de memoria persistente, la cuál es llamada
+  *storage*. Storage es un diccionario que mapea palabras de 256 bits a palabras
+  de 256 bits. Aquí es donde las variables de estado de contrato residen. Su uso
+  es costoso.
+- La segunda área de memoria es llamada *memory*, la cual es usada para mantener
+  variables temporales. Se limpia entre llamadas de funciones.
+- La tercera área de memoria es la *pila*, la cuál es usada para mantener
+  variables locales pequeñas. Sólo puede mantener una cantidad limitada de
+  elementos.
+
+** Invocaciones de Mensajes
+
+- Los contratos pueden invocar a otros contratos o enviar Ether a cuentas que no
+  son contratos a través de invocaciones de mensajes.
+- Similares a las transacciones, en que tienen un emisor, un objetivo, data
+  payload, Ether y gas.
+
+* Solidity en profundidad
+
+
+
+
+* Flujo de implementacíón de contratos
+
+* Bibliografía
+
+https://myetherwallet.github.io/knowledge-base/gas/what-is-gas-ethereum.html
+https://solidity.readthedocs.io/en/v0.4.23/introduction-to-smart-contracts.html
+https://stackoverflow.com/questions/33839154/in-ethereum-solidity-what-is-the-purpose-of-the-memory-keyword/33839164#33839164
+
+* Preguntas
+
+¿Cómo se distribuye el gasto de gas en la blockchain?

@@ -146,21 +146,55 @@ personas acaparen que ciertas transacciones siempre sean las primeras minadas.
 - Se compila a bytecode que después es ejecutado en la EVM.
 - Solidity es un lenguaje Turing-Completo
 
-** IDEs para el desarrollo de smart contracts con solidity
-- Remix :: Editor oficial de ethereum
-- Ethereum studio :: Plugin para visual studio
-- Plugin de Intellij ::
-- EtherAtom :: Plugin para Atom
-- solidity-mode :: Modo de edición de solidity para emacs.
+** IDEs para el desarrollo de smart-contracts con solidity
+- [[https://remix.ethereum.org/][Remix]] :: Editor oficial de ethereum
+- [[https://azuremarketplace.microsoft.com/en-us/marketplace/apps/ethereum.ethereum-studio][Ethereum studio]] :: Plugin para visual studio
+- [[https://plugins.jetbrains.com/plugin/9475-intellij-solidity][Plugin de Intellij]] ::
+- [[https://github.com/0mkara/etheratom][EtherAtom]] :: Plugin para Atom
+- [[https://github.com/ethereum/emacs-solidity][solidity-mode]] :: Modo de edición de solidity para emacs.
 
-* Flujo de implementacíón de contratos
+** Frameworks para la construcción de smart-contracts
+- [[http://truffleframework.com][Truffle]] :: Framework para la construcción smart-contracts
+- [[https://github.com/embark-framework/embark][Embark]] :: Framework for serverless Decentralized Applications using Ethereum,
+     IPFS and other platforms
+- [[https://dapp.readthedocs.io/en/latest/][dapp]] :: Dapp is a simple command line tool for smart contract development.
+
+** Estructuras de solidity
+
+Solidity cuenta con varias estructuras para crear contratos inteligentes:
+
+- [[http://solidity.readthedocs.io/en/develop/types.html][Tipos de datos]] :: bool, int, uint, string, address, tipos de funciones
+  (internas, externas)
+- Estructuras de datos :: arrays, bytes{1,32}, enums, mappings
+- [[http://solidity.readthedocs.io/en/develop/units-and-global-variables.html][Unidades y variables globales]] :: block, msg, tx, funciones criptográficas
+- [[http://solidity.readthedocs.io/en/develop/control-structures.html][Estructuras de control]] :: if, else, while, for, do, break, continue, return, ?
+
+** Creando un smart-contract con truffle
+
+#+begin_src sh
+mkdir ballot
+cd ballot
+truffle init
+#+end_src
+
+** Iniciando un cliente de ethereum
+
+Utilizaremos ganache, el cual permite generar automáticamente una blockchain en
+la computadora, cuentas, así como visualizar las transacciones y los bloques
+minados.
+
+** Compilando el smart-contract
+
+Copiaremos el ejemplo de la votación que está en
+
+[[file:ballot/voting.sol]]
+
+Dentro de la carpeta de *ballot* ejecutamos el código que está [[file:ballot/tools.js][tools.js]].
 
 * Bibliografía
 
 https://myetherwallet.github.io/knowledge-base/gas/what-is-gas-ethereum.html
 https://solidity.readthedocs.io/en/v0.4.23/introduction-to-smart-contracts.html
+http://solidity.readthedocs.io/en/develop/types.html
+http://solidity.readthedocs.io/en/develop/units-and-global-variables.html
 https://stackoverflow.com/questions/33839154/in-ethereum-solidity-what-is-the-purpose-of-the-memory-keyword/33839164#33839164
-
-* Preguntas
-
-¿Cómo se distribuye el gasto de gas en la blockchain?
